@@ -1,0 +1,63 @@
+<div class="app-container">
+  <header class="header">
+    <h1>{{ title }}</h1>
+    <p class="subtitle">Personalized AI Interview Preparation & Feedback</p>
+  </header>
+
+  <div class="main-content">
+    <div class="controls-panel">
+      <div class="control-group">
+        <label for="domain">Domain:</label>
+        <select id="domain" [(ngModel)]="selectedDomain" class="control-select">
+          <option *ngFor="let domain of domains" [value]="domain">{{ domain }}</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="difficulty">Difficulty:</label>
+        <select id="difficulty" [(ngModel)]="selectedDifficulty" class="control-select">
+          <option *ngFor="let difficulty of difficulties" [value]="difficulty">{{ difficulty }}</option>
+        </select>
+      </div>
+
+      <button class="reset-btn" (click)="resetChat()">Reset Chat</button>
+    </div>
+
+    <div class="chat-container">
+      <div class="chat-messages">
+        <div *ngFor="let message of messages" 
+             class="message" 
+             [ngClass]="{'user-message': message.sender === 'user', 'ai-message': message.sender === 'ai'}">
+          <div class="message-header">
+            <span class="message-sender">{{ message.sender === 'user' ? 'You' : 'SmartKoach' }}</span>
+            <span class="message-time">{{ message.timestamp | date:'short' }}</span>
+          </div>
+          <div class="message-text">{{ message.text }}</div>
+        </div>
+        
+        <div *ngIf="isLoading" class="message ai-message loading-message">
+          <div class="message-header">
+            <span class="message-sender">SmartKoach</span>
+          </div>
+          <div class="message-text">Thinking...</div>
+        </div>
+      </div>
+
+      <div class="chat-input-container">
+        <textarea 
+          [(ngModel)]="userMessage" 
+          (keypress)="onKeyPress($event)"
+          placeholder="Type your answer or question here..."
+          class="chat-input"
+          rows="3"
+          [disabled]="isLoading"></textarea>
+        <button 
+          (click)="sendMessage()" 
+          [disabled]="!userMessage.trim() || isLoading"
+          class="send-btn">
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
