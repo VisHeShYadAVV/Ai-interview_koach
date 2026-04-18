@@ -25,8 +25,8 @@ export class AppComponent {
   selectedDifficulty = 'Medium';
   isLoading = false;
   
-  domains = ['DSA', 'ML', 'DBMS', 'OS', 'English', 'Botany', 'Math'];
-  difficulties = ['Easy', 'Medium', 'Hard'];
+  domains = ['DSA', 'ML', 'DBMS', 'OS', 'English', 'Botany', 'Math', 'Computer Networks', 'System Design', 'AI'];
+  difficulties = ['Easy', 'Medium', 'Hard', 'Beginner', 'Intermediate', 'Advanced', 'Undergraduate', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
   
   private apiUrl = environment.apiUrl;
 
@@ -41,7 +41,11 @@ export class AppComponent {
     }
 
     const message = this.userMessage.trim();
+    const domain = this.normalizeSelection(this.selectedDomain, 'DSA');
+    const difficulty = this.normalizeSelection(this.selectedDifficulty, 'Medium');
     this.userMessage = '';
+    this.selectedDomain = domain;
+    this.selectedDifficulty = difficulty;
     
     // Add user message to chat
     this.addUserMessage(message);
@@ -52,16 +56,17 @@ export class AppComponent {
     // Call backend API
     this.http.post<{ reply: string }>(`${this.apiUrl}/chat`, {
       message: message,
-      domain: this.selectedDomain,
-      difficulty: this.selectedDifficulty
+      domain: domain,
+      difficulty: difficulty
     }).subscribe({
       next: (response) => {
-        this.addAIMessage(response.reply);
+        this.addAIMessage(response.reply?.trim() || 'I am ready. Please share your answer or ask your next question.');
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error:', error);
-        this.addAIMessage('Sorry, there was an error processing your request. Please check if the backend is running and try again.');
+        const backendError = typeof error?.error?.detail === 'string' ? error.error.detail : '';
+        this.addAIMessage(backendError || 'Sorry, there was an error processing your request. Please check if the backend is running and try again.');
         this.isLoading = false;
       }
     });
@@ -111,5 +116,10 @@ export class AppComponent {
       event.preventDefault();
       this.sendMessage();
     }
+  }
+
+  private normalizeSelection(value: string, fallback: string): string {
+    const normalized = value?.trim();
+    return normalized ? normalized : fallback;
   }
 }

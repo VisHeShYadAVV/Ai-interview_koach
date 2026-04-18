@@ -18,6 +18,7 @@ class OpenAIService:
     # OpenAI REST API configuration
     OPENAI_API_BASE = "https://api.openai.com/v1"
     OPENAI_MODEL = "gpt-3.5-turbo"  # Stable, widely available model for chat
+    ADAPTIVE_DIFFICULTIES = {"easy", "medium", "hard"}
     
     # Domain constraints to prevent drift - strictly enforce topic boundaries
     DOMAIN_CONSTRAINTS = {
@@ -95,8 +96,14 @@ class OpenAIService:
         Returns:
             AI generated interview feedback
         """
-        # Use adaptive difficulty if available, otherwise use provided difficulty
-        active_difficulty = self.current_difficulty if len(self.question_history) >= self.MIN_QUESTIONS_FOR_ADJUSTMENT else difficulty
+        requested_difficulty = difficulty.strip() if difficulty else "Medium"
+        use_adaptive_difficulty = (
+            requested_difficulty.lower() in self.ADAPTIVE_DIFFICULTIES and
+            len(self.question_history) >= self.MIN_QUESTIONS_FOR_ADJUSTMENT
+        )
+
+        # Keep custom/numeric difficulties fixed; only auto-adjust canonical Easy/Medium/Hard
+        active_difficulty = self.current_difficulty if use_adaptive_difficulty else requested_difficulty
         
         # Get domain-specific constraint from class constant
         domain_constraint = self.DOMAIN_CONSTRAINTS.get(domain, f"{domain} ONLY. Do not introduce topics from other domains.")

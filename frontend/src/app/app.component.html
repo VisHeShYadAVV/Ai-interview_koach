@@ -8,16 +8,28 @@
     <div class="controls-panel">
       <div class="control-group">
         <label for="domain">Domain:</label>
-        <select id="domain" [(ngModel)]="selectedDomain" class="control-select">
-          <option *ngFor="let domain of domains" [value]="domain">{{ domain }}</option>
-        </select>
+        <input
+          id="domain"
+          [(ngModel)]="selectedDomain"
+          class="control-select"
+          list="domain-options"
+          placeholder="Type or search domain" />
+        <datalist id="domain-options">
+          <option *ngFor="let domain of domains" [value]="domain"></option>
+        </datalist>
       </div>
 
       <div class="control-group">
         <label for="difficulty">Difficulty:</label>
-        <select id="difficulty" [(ngModel)]="selectedDifficulty" class="control-select">
-          <option *ngFor="let difficulty of difficulties" [value]="difficulty">{{ difficulty }}</option>
-        </select>
+        <input
+          id="difficulty"
+          [(ngModel)]="selectedDifficulty"
+          class="control-select"
+          list="difficulty-options"
+          placeholder="Type or search difficulty" />
+        <datalist id="difficulty-options">
+          <option *ngFor="let difficulty of difficulties" [value]="difficulty"></option>
+        </datalist>
       </div>
 
       <button class="reset-btn" (click)="resetChat()">Reset Chat</button>
