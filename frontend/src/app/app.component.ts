@@ -22,11 +22,13 @@ export class AppComponent {
   messages: Message[] = [];
   userMessage = '';
   selectedDomain = 'DSA';
+  selectedDifficultyMode: 'technical' | 'learning' = 'technical';
   selectedDifficulty = 'Medium';
   isLoading = false;
   
-  domains = ['DSA', 'ML', 'DBMS', 'OS', 'English', 'Botany', 'Math'];
-  difficulties = ['Easy', 'Medium', 'Hard'];
+  domains = ['DSA', 'ML', 'DBMS', 'OS', 'English', 'Botany', 'Math', 'Computer Networks', 'System Design', 'AI'];
+  readonly technicalDifficulties = ['Easy', 'Medium', 'Hard'];
+  readonly learningDifficulties = ['Beginner', 'Intermediate', 'Advanced'];
   
   private apiUrl = environment.apiUrl;
 
@@ -41,7 +43,11 @@ export class AppComponent {
     }
 
     const message = this.userMessage.trim();
+    const domain = this.normalizeSelection(this.selectedDomain, 'DSA');
+    const difficulty = this.normalizeSelection(this.selectedDifficulty, 'Medium');
     this.userMessage = '';
+    this.selectedDomain = domain;
+    this.selectedDifficulty = difficulty;
     
     // Add user message to chat
     this.addUserMessage(message);
@@ -52,16 +58,18 @@ export class AppComponent {
     // Call backend API
     this.http.post<{ reply: string }>(`${this.apiUrl}/chat`, {
       message: message,
-      domain: this.selectedDomain,
-      difficulty: this.selectedDifficulty
+      domain: domain,
+      difficulty: difficulty
     }).subscribe({
       next: (response) => {
-        this.addAIMessage(response.reply);
+        const aiReply = response.reply?.trim();
+        this.addAIMessage(aiReply || 'Received an empty response from the server. Please try again.');
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error:', error);
-        this.addAIMessage('Sorry, there was an error processing your request. Please check if the backend is running and try again.');
+        const backendError = typeof error?.error?.detail === 'string' ? error.error.detail : '';
+        this.addAIMessage(backendError || 'Sorry, there was an error processing your request. Please check if the backend is running and try again.');
         this.isLoading = false;
       }
     });
@@ -111,5 +119,29 @@ export class AppComponent {
       event.preventDefault();
       this.sendMessage();
     }
+  }
+
+  get currentDifficultyOptions(): string[] {
+    return this.selectedDifficultyMode === 'technical'
+      ? this.technicalDifficulties
+      : this.learningDifficulties;
+  }
+
+  get difficultyPlaceholder(): string {
+    return this.selectedDifficultyMode === 'technical'
+      ? 'Type Easy / Medium / Hard or custom'
+      : 'Type Beginner / Intermediate / Advanced or custom';
+  }
+
+  onDifficultyModeChange() {
+    const normalizedDifficulty = this.selectedDifficulty?.trim();
+    if (!normalizedDifficulty || !this.currentDifficultyOptions.includes(normalizedDifficulty)) {
+      this.selectedDifficulty = this.currentDifficultyOptions[0];
+    }
+  }
+
+  private normalizeSelection(value: string, fallback: string): string {
+    const normalized = value?.trim();
+    return normalized ? normalized : fallback;
   }
 }

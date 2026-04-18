@@ -1,9 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, ValidationInfo, field_validator
 from dotenv import load_dotenv
-import os
 
 from services.openai_service import OpenAIService
 
@@ -33,6 +31,23 @@ class ChatRequest(BaseModel):
     domain: str = "DSA"
     difficulty: str = "Medium"
 
+    @field_validator("message")
+    @classmethod
+    def validate_message(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("Message cannot be empty")
+        return cleaned
+
+    @field_validator("domain", "difficulty", mode="before")
+    @classmethod
+    def normalize_fields_with_defaults(cls, value, info: ValidationInfo) -> str:
+        defaults = {"domain": "DSA", "difficulty": "Medium"}
+        if value is None:
+            return defaults[info.field_name]
+        cleaned = str(value).strip()
+        return cleaned or defaults[info.field_name]
+
 class ChatResponse(BaseModel):
     reply: str
 
@@ -52,9 +67,8 @@ async def chat(request: ChatRequest):
         ChatResponse with AI generated reply
     """
     if not ai_service:
-        raise HTTPException(
-            status_code=500,
-            detail="AI service is not initialized. Please check OPENAI_API_KEY."
+        return ChatResponse(
+            reply="The AI service is temporarily unavailable because the API key is not configured. Please set OPENAI_API_KEY and try again."
         )
     
     try:
@@ -65,7 +79,8 @@ async def chat(request: ChatRequest):
         )
         return ChatResponse(reply=ai_reply)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
+        print(f"Error processing /chat request [{type(e).__name__}]: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error processing request. Please try again.")
 
 @app.post("/reset")
 async def reset_chat():
