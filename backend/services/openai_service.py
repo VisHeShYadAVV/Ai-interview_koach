@@ -19,6 +19,8 @@ class OpenAIService:
     OPENAI_API_BASE = "https://api.openai.com/v1"
     OPENAI_MODEL = "gpt-3.5-turbo"  # Stable, widely available model for chat
     ADAPTIVE_DIFFICULTIES = {"easy", "medium", "hard"}
+    START_KEYWORDS = {"start", "begin", "start interview", "begin interview", "lets start", "let's start", "ready", "start now"}
+    FOLLOW_UP_HINTS = ["hint", "explain", "clarify", "repeat", "rephrase", "example", "what do you mean", "can you", "help me"]
     
     # Domain constraints to prevent drift - strictly enforce topic boundaries
     DOMAIN_CONSTRAINTS = {
@@ -39,6 +41,7 @@ class OpenAIService:
         self.conversation_history = []
         self.question_history = []  # Track recent questions for difficulty progression
         self.current_difficulty = "Easy"  # Start with Easy difficulty
+        self.interview_started = False
     
     def _update_difficulty(self, is_correct: bool):
         """
@@ -105,14 +108,43 @@ class OpenAIService:
         # Keep custom/numeric difficulties fixed; only auto-adjust canonical Easy/Medium/Hard
         active_difficulty = self.current_difficulty if use_adaptive_difficulty else requested_difficulty
         
+        interaction_type = self._classify_interaction(user_message)
+
         # Get domain-specific constraint from class constant
         domain_constraint = self.DOMAIN_CONSTRAINTS.get(domain, f"{domain} ONLY. Do not introduce topics from other domains.")
-        
-        system_prompt = f"""You are SmartKoach, an AI Interview Coach. You MUST strictly follow these rules:
+
+        if interaction_type == "start":
+            system_prompt = f"""You are SmartKoach, an AI Interview Coach.
+
+CRITICAL DOMAIN CONSTRAINT:
+Your response must be EXCLUSIVELY about: {domain_constraint}
+
+DIFFICULTY CONSTRAINT:
+The first interview question must be at EXACTLY {active_difficulty} level.
+
+This is the interview initialization step. Do NOT evaluate the user's message.
+Ask the first interview question directly in {domain} at {active_difficulty} level.
+Keep the response concise and interview-focused.
+"""
+        elif interaction_type == "follow_up":
+            system_prompt = f"""You are SmartKoach, an AI Interview Coach. You MUST strictly follow these rules:
+
+CRITICAL DOMAIN CONSTRAINT:
+Your response must be EXCLUSIVELY about: {domain_constraint}
+
+DIFFICULTY CONSTRAINT:
+Keep all interview questions at EXACTLY {active_difficulty} level.
+
+This is a follow-up interaction. The user is asking for clarification/hints.
+Do NOT grade this message as an answer.
+Provide a concise clarification/hint and then continue the interview with one question in {domain} at {active_difficulty} level.
+"""
+        else:
+            system_prompt = f"""You are SmartKoach, an AI Interview Coach. You MUST strictly follow these rules:
 
 CRITICAL DOMAIN CONSTRAINT:
 Your questions and feedback must be EXCLUSIVELY about: {domain_constraint}
-3
+
 DIFFICULTY CONSTRAINT:
 All questions must be at EXACTLY {active_difficulty} difficulty level. Do NOT change or escalate difficulty on your own.
 
@@ -153,10 +185,13 @@ REMEMBER: The controller has selected {domain} at {active_difficulty} difficulty
             # Call OpenAI REST API directly
             ai_response = self._call_openai_api(system_prompt, user_content)
             
-            # Attempt to detect if the answer was correct based on AI feedback
-            # Simple heuristic: look for positive indicators in the response
-            is_correct = self._evaluate_correctness(ai_response, user_message)
-            self._update_difficulty(is_correct)
+            if interaction_type == "answer":
+                # Attempt to detect if the answer was correct based on AI feedback
+                # Simple heuristic: look for positive indicators in the response
+                is_correct = self._evaluate_correctness(ai_response, user_message)
+                self._update_difficulty(is_correct)
+            else:
+                self.interview_started = True
             
             # Store conversation history
             self.conversation_history.append(f"User: {user_message}")
@@ -260,9 +295,29 @@ REMEMBER: The controller has selected {domain} at {active_difficulty} difficulty
         # - If equal or no clear indicators, default to incorrect (conservative)
         # - This prevents ambiguous responses from counting as correct
         return positive_count > negative_count and positive_count > 0
+
+    def _classify_interaction(self, user_message: str) -> str:
+        normalized = user_message.strip().lower()
+
+        if not self.interview_started:
+            if normalized in self.START_KEYWORDS:
+                return "start"
+            if len(normalized.split()) <= 5:
+                return "start"
+            return "start"
+
+        if self._is_follow_up_message(normalized):
+            return "follow_up"
+        return "answer"
+
+    def _is_follow_up_message(self, normalized_message: str) -> bool:
+        if "?" in normalized_message and len(normalized_message.split()) <= 25:
+            return True
+        return any(hint in normalized_message for hint in self.FOLLOW_UP_HINTS)
     
     def reset_conversation(self):
         """Reset conversation history and difficulty progression"""
         self.conversation_history = []
         self.question_history = []
         self.current_difficulty = "Easy"
+        self.interview_started = False

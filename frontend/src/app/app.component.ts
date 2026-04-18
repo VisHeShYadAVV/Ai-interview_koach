@@ -22,11 +22,13 @@ export class AppComponent {
   messages: Message[] = [];
   userMessage = '';
   selectedDomain = 'DSA';
+  selectedDifficultyMode: 'technical' | 'learning' = 'technical';
   selectedDifficulty = 'Medium';
   isLoading = false;
   
   domains = ['DSA', 'ML', 'DBMS', 'OS', 'English', 'Botany', 'Math', 'Computer Networks', 'System Design', 'AI'];
-  difficulties = ['Easy', 'Medium', 'Hard', 'Beginner', 'Intermediate', 'Advanced', 'Undergraduate', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+  readonly technicalDifficulties = ['Easy', 'Medium', 'Hard'];
+  readonly learningDifficulties = ['Beginner', 'Intermediate', 'Advanced'];
   
   private apiUrl = environment.apiUrl;
 
@@ -116,6 +118,24 @@ export class AppComponent {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.sendMessage();
+    }
+  }
+
+  get currentDifficultyOptions(): string[] {
+    return this.selectedDifficultyMode === 'technical'
+      ? this.technicalDifficulties
+      : this.learningDifficulties;
+  }
+
+  get difficultyPlaceholder(): string {
+    return this.selectedDifficultyMode === 'technical'
+      ? 'Type Easy / Medium / Hard or custom'
+      : 'Type Beginner / Intermediate / Advanced or custom';
+  }
+
+  onDifficultyModeChange() {
+    if (!this.selectedDifficulty.trim()) {
+      this.selectedDifficulty = this.currentDifficultyOptions[0];
     }
   }
 

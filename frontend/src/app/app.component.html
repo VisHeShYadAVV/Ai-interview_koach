@@ -20,15 +20,27 @@
       </div>
 
       <div class="control-group">
+        <label for="difficultyType">Difficulty Type:</label>
+        <select
+          id="difficultyType"
+          [(ngModel)]="selectedDifficultyMode"
+          (change)="onDifficultyModeChange()"
+          class="control-select">
+          <option value="technical">Easy / Medium / Hard</option>
+          <option value="learning">Beginner / Intermediate / Advanced</option>
+        </select>
+      </div>
+
+      <div class="control-group">
         <label for="difficulty">Difficulty:</label>
         <input
           id="difficulty"
           [(ngModel)]="selectedDifficulty"
           class="control-select"
           list="difficulty-options"
-          placeholder="Type or search difficulty" />
+          [placeholder]="difficultyPlaceholder" />
         <datalist id="difficulty-options">
-          <option *ngFor="let difficulty of difficulties" [value]="difficulty"></option>
+          <option *ngFor="let difficulty of currentDifficultyOptions" [value]="difficulty"></option>
         </datalist>
       </div>
 
