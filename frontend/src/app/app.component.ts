@@ -60,7 +60,8 @@ export class AppComponent {
       difficulty: difficulty
     }).subscribe({
       next: (response) => {
-        this.addAIMessage(response.reply?.trim() || 'I am ready. Please share your answer or ask your next question.');
+        const aiReply = response.reply?.trim();
+        this.addAIMessage(aiReply || 'Received an empty response from the server. Please try again.');
         this.isLoading = false;
       },
       error: (error) => {

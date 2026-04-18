@@ -41,7 +41,7 @@ class ChatRequest(BaseModel):
 
     @field_validator("domain", "difficulty", mode="before")
     @classmethod
-    def normalize_optional_fields(cls, value, info: ValidationInfo) -> str:
+    def normalize_fields_with_defaults(cls, value, info: ValidationInfo) -> str:
         defaults = {"domain": "DSA", "difficulty": "Medium"}
         if value is None:
             return defaults[info.field_name]
@@ -79,7 +79,7 @@ async def chat(request: ChatRequest):
         )
         return ChatResponse(reply=ai_reply)
     except Exception as e:
-        print(f"Error processing /chat request: {str(e)}")
+        print(f"Error processing /chat request [{type(e).__name__}]: {str(e)}")
         raise HTTPException(status_code=500, detail="Error processing request. Please try again.")
 
 @app.post("/reset")

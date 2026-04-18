@@ -96,7 +96,7 @@ class OpenAIService:
         Returns:
             AI generated interview feedback
         """
-        requested_difficulty = difficulty.strip() if difficulty else "Medium"
+        requested_difficulty = difficulty
         use_adaptive_difficulty = (
             requested_difficulty.lower() in self.ADAPTIVE_DIFFICULTIES and
             len(self.question_history) >= self.MIN_QUESTIONS_FOR_ADJUSTMENT
