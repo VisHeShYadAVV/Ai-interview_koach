@@ -134,7 +134,8 @@ export class AppComponent {
   }
 
   onDifficultyModeChange() {
-    if (!this.selectedDifficulty.trim()) {
+    const normalizedDifficulty = this.selectedDifficulty?.trim();
+    if (!normalizedDifficulty || !this.currentDifficultyOptions.includes(normalizedDifficulty)) {
       this.selectedDifficulty = this.currentDifficultyOptions[0];
     }
   }

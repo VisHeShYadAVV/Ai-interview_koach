@@ -19,8 +19,8 @@ class OpenAIService:
     OPENAI_API_BASE = "https://api.openai.com/v1"
     OPENAI_MODEL = "gpt-3.5-turbo"  # Stable, widely available model for chat
     ADAPTIVE_DIFFICULTIES = {"easy", "medium", "hard"}
-    START_KEYWORDS = {"start", "begin", "start interview", "begin interview", "lets start", "let's start", "ready", "start now"}
     FOLLOW_UP_HINTS = ["hint", "explain", "clarify", "repeat", "rephrase", "example", "what do you mean", "can you", "help me"]
+    MAX_FOLLOW_UP_WORD_COUNT = 25
     
     # Domain constraints to prevent drift - strictly enforce topic boundaries
     DOMAIN_CONSTRAINTS = {
@@ -300,10 +300,6 @@ REMEMBER: The controller has selected {domain} at {active_difficulty} difficulty
         normalized = user_message.strip().lower()
 
         if not self.interview_started:
-            if normalized in self.START_KEYWORDS:
-                return "start"
-            if len(normalized.split()) <= 5:
-                return "start"
             return "start"
 
         if self._is_follow_up_message(normalized):
@@ -311,7 +307,7 @@ REMEMBER: The controller has selected {domain} at {active_difficulty} difficulty
         return "answer"
 
     def _is_follow_up_message(self, normalized_message: str) -> bool:
-        if "?" in normalized_message and len(normalized_message.split()) <= 25:
+        if "?" in normalized_message and len(normalized_message.split()) <= self.MAX_FOLLOW_UP_WORD_COUNT:
             return True
         return any(hint in normalized_message for hint in self.FOLLOW_UP_HINTS)
     
