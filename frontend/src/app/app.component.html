@@ -21,28 +21,22 @@
 
       <div class="control-group">
         <label for="difficultyType">Difficulty Type:</label>
-        <input
+        <select
           id="difficultyType"
           [(ngModel)]="selectedDifficultyType"
-          class="control-select"
-          list="difficulty-type-options"
-          placeholder="Type Beginner / Intermediate / Advanced or custom" />
-        <datalist id="difficulty-type-options">
-          <option *ngFor="let difficultyType of difficultyTypes" [value]="difficultyType"></option>
-        </datalist>
+          class="control-select">
+          <option *ngFor="let difficultyType of difficultyTypes" [value]="difficultyType">{{ difficultyType }}</option>
+        </select>
       </div>
 
       <div class="control-group">
         <label for="difficulty">Difficulty Level:</label>
-        <input
+        <select
           id="difficulty"
           [(ngModel)]="selectedDifficulty"
-          class="control-select"
-          list="difficulty-options"
-          placeholder="Type Easy / Medium / Hard or custom" />
-        <datalist id="difficulty-options">
-          <option *ngFor="let difficulty of difficulties" [value]="difficulty"></option>
-        </datalist>
+          class="control-select">
+          <option *ngFor="let difficulty of difficulties" [value]="difficulty">{{ difficulty }}</option>
+        </select>
       </div>
 
       <button class="reset-btn" (click)="resetChat()">Reset Chat</button>

@@ -22,7 +22,7 @@ export class AppComponent {
   private readonly initialWelcomeMessage = 'Welcome to SmartKoach! I\'m your AI Interview Coach. Select a domain and difficulty level, then send a message to start your interview preparation.';
   private readonly initialDomain = 'DSA';
   private readonly initialDifficultyType = 'Beginner';
-  private readonly initialDifficulty = 'Medium';
+  private readonly initialDifficulty = 'Easy';
   messages: Message[] = [];
   userMessage = '';
   selectedDomain = this.initialDomain;
@@ -46,10 +46,12 @@ export class AppComponent {
     }
 
     const message = this.userMessage.trim();
-    const domain = this.normalizeSelection(this.selectedDomain, 'DSA');
-    const difficulty = this.normalizeSelection(this.selectedDifficulty, 'Medium');
+    const domain = this.normalizeSelection(this.selectedDomain, this.initialDomain);
+    const difficultyType = this.selectedDifficultyType;
+    const difficulty = this.selectedDifficulty;
     this.userMessage = '';
     this.selectedDomain = domain;
+    this.selectedDifficultyType = difficultyType;
     this.selectedDifficulty = difficulty;
     
     // Add user message to chat
@@ -62,6 +64,7 @@ export class AppComponent {
     this.http.post<{ reply: string }>(`${this.apiUrl}/chat`, {
       message: message,
       domain: domain,
+      difficultyType: difficultyType,
       difficulty: difficulty
     }).subscribe({
       next: (response) => {
