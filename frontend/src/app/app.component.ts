@@ -21,18 +21,18 @@ export class AppComponent {
   title = 'SmartKoach - AI Interview Coach';
   private readonly initialWelcomeMessage = 'Welcome to SmartKoach! I\'m your AI Interview Coach. Select a domain and difficulty level, then send a message to start your interview preparation.';
   private readonly initialDomain = 'DSA';
-  private readonly initialDifficultyMode: 'technical' | 'learning' = 'technical';
+  private readonly initialDifficultyType = 'Beginner';
   private readonly initialDifficulty = 'Medium';
   messages: Message[] = [];
   userMessage = '';
   selectedDomain = this.initialDomain;
-  selectedDifficultyMode: 'technical' | 'learning' = this.initialDifficultyMode;
+  selectedDifficultyType = this.initialDifficultyType;
   selectedDifficulty = this.initialDifficulty;
   isLoading = false;
   
   domains = ['DSA', 'ML', 'DBMS', 'OS', 'English', 'Botany', 'Math', 'Computer Networks', 'System Design', 'AI'];
-  readonly technicalDifficulties = ['Easy', 'Medium', 'Hard'];
-  readonly learningDifficulties = ['Beginner', 'Intermediate', 'Advanced'];
+  readonly difficultyTypes = ['Beginner', 'Intermediate', 'Advanced'];
+  readonly difficulties = ['Easy', 'Medium', 'Hard'];
   
   private apiUrl = environment.apiUrl;
 
@@ -93,7 +93,7 @@ export class AppComponent {
     this.messages = [];
     this.userMessage = '';
     this.selectedDomain = this.initialDomain;
-    this.selectedDifficultyMode = this.initialDifficultyMode;
+    this.selectedDifficultyType = this.initialDifficultyType;
     this.selectedDifficulty = this.initialDifficulty;
     this.isLoading = false;
     this.addAIMessage(this.initialWelcomeMessage);
@@ -130,25 +130,6 @@ export class AppComponent {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.sendMessage();
-    }
-  }
-
-  get currentDifficultyOptions(): string[] {
-    return this.selectedDifficultyMode === 'technical'
-      ? this.technicalDifficulties
-      : this.learningDifficulties;
-  }
-
-  get difficultyPlaceholder(): string {
-    return this.selectedDifficultyMode === 'technical'
-      ? 'Type Easy / Medium / Hard or custom'
-      : 'Type Beginner / Intermediate / Advanced or custom';
-  }
-
-  onDifficultyModeChange() {
-    const normalizedDifficulty = this.selectedDifficulty?.trim();
-    if (!normalizedDifficulty || !this.currentDifficultyOptions.includes(normalizedDifficulty)) {
-      this.selectedDifficulty = this.currentDifficultyOptions[0];
     }
   }
 
