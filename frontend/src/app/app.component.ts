@@ -19,22 +19,25 @@ interface Message {
 })
 export class AppComponent {
   title = 'SmartKoach - AI Interview Coach';
+  private readonly initialWelcomeMessage = 'Welcome to SmartKoach! I\'m your AI Interview Coach. Select a domain and difficulty level, then send a message to start your interview preparation.';
+  private readonly initialDomain = 'DSA';
+  private readonly initialDifficultyType = 'Beginner';
+  private readonly initialDifficulty = 'Easy';
   messages: Message[] = [];
   userMessage = '';
-  selectedDomain = 'DSA';
-  selectedDifficultyMode: 'technical' | 'learning' = 'technical';
-  selectedDifficulty = 'Medium';
+  selectedDomain = this.initialDomain;
+  selectedDifficultyType = this.initialDifficultyType;
+  selectedDifficulty = this.initialDifficulty;
   isLoading = false;
   
   domains = ['DSA', 'ML', 'DBMS', 'OS', 'English', 'Botany', 'Math', 'Computer Networks', 'System Design', 'AI'];
-  readonly technicalDifficulties = ['Easy', 'Medium', 'Hard'];
-  readonly learningDifficulties = ['Beginner', 'Intermediate', 'Advanced'];
+  readonly difficultyTypes = ['Beginner', 'Intermediate', 'Advanced'];
+  readonly difficulties = ['Easy', 'Medium', 'Hard'];
   
   private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {
-    // Add welcome message
-    this.addAIMessage('Welcome to SmartKoach! I\'m your AI Interview Coach. Select a domain and difficulty level, then send a message to start your interview preparation.');
+    this.restoreInitialState();
   }
 
   sendMessage() {
@@ -43,10 +46,12 @@ export class AppComponent {
     }
 
     const message = this.userMessage.trim();
-    const domain = this.normalizeSelection(this.selectedDomain, 'DSA');
-    const difficulty = this.normalizeSelection(this.selectedDifficulty, 'Medium');
+    const domain = this.normalizeSelection(this.selectedDomain, this.initialDomain);
+    const difficultyType = this.selectedDifficultyType;
+    const difficulty = this.selectedDifficulty;
     this.userMessage = '';
     this.selectedDomain = domain;
+    this.selectedDifficultyType = difficultyType;
     this.selectedDifficulty = difficulty;
     
     // Add user message to chat
@@ -59,6 +64,7 @@ export class AppComponent {
     this.http.post<{ reply: string }>(`${this.apiUrl}/chat`, {
       message: message,
       domain: domain,
+      difficultyType: difficultyType,
       difficulty: difficulty
     }).subscribe({
       next: (response) => {
@@ -78,13 +84,22 @@ export class AppComponent {
   resetChat() {
     this.http.post(`${this.apiUrl}/reset`, {}).subscribe({
       next: () => {
-        this.messages = [];
-        this.addAIMessage('Conversation reset. Let\'s start fresh! What would you like to practice?');
+        this.restoreInitialState();
       },
       error: (error) => {
         console.error('Error resetting chat:', error);
       }
     });
+  }
+
+  private restoreInitialState() {
+    this.messages = [];
+    this.userMessage = '';
+    this.selectedDomain = this.initialDomain;
+    this.selectedDifficultyType = this.initialDifficultyType;
+    this.selectedDifficulty = this.initialDifficulty;
+    this.isLoading = false;
+    this.addAIMessage(this.initialWelcomeMessage);
   }
 
   private addUserMessage(text: string) {
@@ -118,25 +133,6 @@ export class AppComponent {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.sendMessage();
-    }
-  }
-
-  get currentDifficultyOptions(): string[] {
-    return this.selectedDifficultyMode === 'technical'
-      ? this.technicalDifficulties
-      : this.learningDifficulties;
-  }
-
-  get difficultyPlaceholder(): string {
-    return this.selectedDifficultyMode === 'technical'
-      ? 'Type Easy / Medium / Hard or custom'
-      : 'Type Beginner / Intermediate / Advanced or custom';
-  }
-
-  onDifficultyModeChange() {
-    const normalizedDifficulty = this.selectedDifficulty?.trim();
-    if (!normalizedDifficulty || !this.currentDifficultyOptions.includes(normalizedDifficulty)) {
-      this.selectedDifficulty = this.currentDifficultyOptions[0];
     }
   }
 
