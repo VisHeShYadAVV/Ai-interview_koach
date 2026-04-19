@@ -19,11 +19,15 @@ interface Message {
 })
 export class AppComponent {
   title = 'SmartKoach - AI Interview Coach';
+  private readonly initialWelcomeMessage = 'Welcome to SmartKoach! I\'m your AI Interview Coach. Select a domain and difficulty level, then send a message to start your interview preparation.';
+  private readonly initialDomain = 'DSA';
+  private readonly initialDifficultyMode: 'technical' | 'learning' = 'technical';
+  private readonly initialDifficulty = 'Medium';
   messages: Message[] = [];
   userMessage = '';
-  selectedDomain = 'DSA';
-  selectedDifficultyMode: 'technical' | 'learning' = 'technical';
-  selectedDifficulty = 'Medium';
+  selectedDomain = this.initialDomain;
+  selectedDifficultyMode: 'technical' | 'learning' = this.initialDifficultyMode;
+  selectedDifficulty = this.initialDifficulty;
   isLoading = false;
   
   domains = ['DSA', 'ML', 'DBMS', 'OS', 'English', 'Botany', 'Math', 'Computer Networks', 'System Design', 'AI'];
@@ -33,8 +37,7 @@ export class AppComponent {
   private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {
-    // Add welcome message
-    this.addAIMessage('Welcome to SmartKoach! I\'m your AI Interview Coach. Select a domain and difficulty level, then send a message to start your interview preparation.');
+    this.restoreInitialState();
   }
 
   sendMessage() {
@@ -78,13 +81,22 @@ export class AppComponent {
   resetChat() {
     this.http.post(`${this.apiUrl}/reset`, {}).subscribe({
       next: () => {
-        this.messages = [];
-        this.addAIMessage('Conversation reset. Let\'s start fresh! What would you like to practice?');
+        this.restoreInitialState();
       },
       error: (error) => {
         console.error('Error resetting chat:', error);
       }
     });
+  }
+
+  private restoreInitialState() {
+    this.messages = [];
+    this.userMessage = '';
+    this.selectedDomain = this.initialDomain;
+    this.selectedDifficultyMode = this.initialDifficultyMode;
+    this.selectedDifficulty = this.initialDifficulty;
+    this.isLoading = false;
+    this.addAIMessage(this.initialWelcomeMessage);
   }
 
   private addUserMessage(text: string) {
