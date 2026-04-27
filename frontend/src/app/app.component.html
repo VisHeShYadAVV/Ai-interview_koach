@@ -27,6 +27,8 @@
           class="control-select">
           <option *ngFor="let difficultyType of difficultyTypes" [value]="difficultyType">{{ difficultyType }}</option>
         </select>
+        <label for="domain">Subject:</label>
+        <input id="domain" [(ngModel)]="selectedDomain" class="control-select" placeholder="Enter any subject (e.g., DSA, ML, History)">
       </div>
 
       <div class="control-group">

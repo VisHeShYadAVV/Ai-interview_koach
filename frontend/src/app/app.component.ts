@@ -33,7 +33,7 @@ export class AppComponent {
   domains = ['DSA', 'ML', 'DBMS', 'OS', 'English', 'Botany', 'Math', 'Computer Networks', 'System Design', 'AI'];
   readonly difficultyTypes = ['Beginner', 'Intermediate', 'Advanced'];
   readonly difficulties = ['Easy', 'Medium', 'Hard'];
-  
+  difficulties = ['Easy', 'Medium', 'Hard'];
   private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {
