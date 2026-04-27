@@ -13,7 +13,11 @@
           [(ngModel)]="selectedDomain"
           class="control-select"
           list="domain-options"
-          placeholder="Type or search domain" />
+          placeholder="Type or search domain"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="none"
+          spellcheck="false" />
         <datalist id="domain-options">
           <option *ngFor="let domain of domains" [value]="domain"></option>
         </datalist>
